@@ -7,22 +7,39 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Inter:wght@400;600;800&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
-        .search-container { position: sticky; top: 0; z-index: 50; }
-        .qty-badge { font-family: 'JetBrains Mono', monospace; min-width: 90px; display: inline-block; text-align: center; }
+        
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #f8fafc; 
+        }
+        
+        .search-container { 
+            position: sticky; 
+            top: 0; 
+            z-index: 50; 
+        }
+
+        .qty-badge { 
+            font-family: 'JetBrains Mono', monospace; 
+            min-width: 100px; 
+            text-align: center; 
+        }
+
+        /* Estilos para filas alternas y hover */
         tr:nth-child(even) { background-color: #f1f5f9; }
         .item-row:hover { background-color: #e2e8f0 !important; }
     </style>
 </head>
+
 <body class="pb-12 text-slate-900">
 
-<div class="search-container bg-white border-b-2 border-slate-200 p-4 shadow-sm">
-    <div class="max-w-5xl mx-auto flex items-center gap-6">
-        <input id="searchInput" type="text" placeholder="Buscar material o ubicación..."
-               class="w-full px-4 py-3 bg-slate-100 rounded-lg font-semibold">
+<div class="search-container bg-white border-b p-4 shadow-sm">
+    <div class="max-w-5xl mx-auto flex gap-6 items-center">
+        <input id="searchInput" type="text" placeholder="Buscar material, ubicación o especialidad..."
+               class="w-full px-4 py-3 bg-slate-100 rounded-lg font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500">
         <div class="text-right">
-            <span class="text-xs font-black text-slate-400 uppercase">Total ítems</span>
-            <span id="totalItems" class="text-2xl font-black text-blue-600">0</span>
+            <span class="text-xs font-black text-slate-400 uppercase">Total</span>
+            <div id="totalItems" class="text-2xl font-black text-blue-600">0</div>
         </div>
     </div>
 </div>
@@ -30,133 +47,252 @@
 <div class="max-w-5xl mx-auto px-4 mt-8">
     <div id="inventoryContainer"></div>
 
-    <div class="mt-12 bg-white border-2 border-amber-200 rounded-xl overflow-hidden">
-        <div class="bg-amber-500 px-6 py-3 font-black text-white">PEDIDOS PENDIENTES</div>
+    <div class="mt-12 bg-white border-2 border-amber-200 rounded-xl overflow-hidden shadow-md">
+        <div class="bg-amber-500 px-6 py-3 font-black text-white flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+            Pedidos pendientes
+        </div>
         <div id="pedidosContainer"></div>
     </div>
 </div>
 
 <script>
+// BASE DE DATOS COMPLETA
 const inventory = [
+    /* ARMARIO 1 */
+    { loc:"Armario 1", name:"Pistolas de composite", qty:"4", spec:"Conservadora" },
+    { loc:"Armario 1", name:"Mezcladores de amalgama (para desechar)", qty:"Varios", spec:"Conservadora" },
 
-/* ARMARIOS */
-{ loc:"Armario 1", name:"Pistolas de composite", qty:"4 uds", spec:"Conservadora" },
-{ loc:"Armario 1", name:"Mezcladores de amalgama (desechar)", qty:"Varios", spec:"Conservadora" },
+    /* ARMARIO 2 */
+    { loc:"Armario 2", name:"Vacío", qty:"—", spec:"—" },
 
-{ loc:"Armario 2", name:"Vacío", qty:"—", spec:"—" },
+    /* ARMARIO 3 */
+    { loc:"Armario 3", name:"Bata de plomo", qty:"1", spec:"Radiología" },
+    { loc:"Armario 3", name:"Placa de Perry", qty:"1", spec:"Radiología" },
 
-{ loc:"Armario 3", name:"Bata de plomo", qty:"1 ud", spec:"Radiología" },
-{ loc:"Armario 3", name:"Placa de Perry", qty:"1 ud", spec:"Radiología" },
+    /* ARMARIO 4 */
+    { loc:"Armario 4", name:"Gel flúor para cubetas", qty:"2 botes", spec:"Preventiva" },
+    { loc:"Armario 4", name:"Pastas de dientes", qty:"7 cajas", spec:"Higiene" },
+    { loc:"Armario 4", name:"Hilo dental", qty:"2", spec:"Higiene" },
+    { loc:"Armario 4", name:"Espátulas y bases de escayola", qty:"Varias", spec:"Prótesis" },
+    { loc:"Armario 4", name:"Vibrador de yeso", qty:"1", spec:"Laboratorio" },
+    { loc:"Armario 4", name:"Máquina de vacío", qty:"1", spec:"Laboratorio" },
+    { loc:"Armario 4", name:"Modelos de escayola", qty:"Varios", spec:"Prótesis" },
+    { loc:"Armario 4", name:"Placas retenedores ortodoncia", qty:"2", spec:"Ortodoncia" },
+    { loc:"Armario 4", name:"Placa retenedor rígida", qty:"1", spec:"Ortodoncia" },
 
-{ loc:"Armario 4", name:"Gel flúor para cubetas", qty:"2 botes", spec:"Preventiva" },
-{ loc:"Armario 4", name:"Pastas de dientes", qty:"7 cajas", spec:"Higiene" },
-{ loc:"Armario 4", name:"Hilo dental", qty:"2 uds", spec:"Higiene" },
-{ loc:"Armario 4", name:"Espátulas y bases de escayola", qty:"Varias", spec:"Prótesis" },
-{ loc:"Armario 4", name:"Vibrador de yeso", qty:"1 ud", spec:"Laboratorio" },
-{ loc:"Armario 4", name:"Máquina de vacío", qty:"1 ud", spec:"Laboratorio" },
-{ loc:"Armario 4", name:"Modelos de escayola", qty:"Varios", spec:"Prótesis" },
-{ loc:"Armario 4", name:"Placas retenedores ortodoncia", qty:"2 uds", spec:"Ortodoncia" },
-{ loc:"Armario 4", name:"Placa retenedor rígida", qty:"1 ud", spec:"Ortodoncia" },
+    /* ARMARIO 5 */
+    { loc:"Armario 5", name:"Mascarillas (suplemento y niños)", qty:"Ilimitado", spec:"EPI" },
 
-{ loc:"Armario 5", name:"Mascarillas (adultos y niños)", qty:"Ilimitado", spec:"EPI" },
+    /* ARMARIO 6 */
+    { loc:"Armario 6", name:"Agua destilada 5 L", qty:"3 botellas", spec:"Higiene" },
+    { loc:"Armario 6", name:"Mascarillas negras", qty:"18 paquetes", spec:"EPI" },
+    { loc:"Armario 6", name:"Guantes talla S", qty:"2 cajas (67)", spec:"EPI" },
+    { loc:"Armario 6", name:"Guantes talla M", qty:"1 caja", spec:"EPI" },
+    { loc:"Armario 6", name:"Guantes talla L", qty:"3 cajas", spec:"EPI" },
+    { loc:"Armario 6", name:"Patucos", qty:"Varios", spec:"EPI" },
 
-{ loc:"Armario 6", name:"Agua destilada 5 L", qty:"3 botellas", spec:"Higiene" },
-{ loc:"Armario 6", name:"Mascarillas negras", qty:"18 paquetes", spec:"EPI" },
-{ loc:"Armario 6", name:"Guantes talla S", qty:"2 cajas", spec:"EPI" },
-{ loc:"Armario 6", name:"Guantes talla M", qty:"1 caja", spec:"EPI" },
-{ loc:"Armario 6", name:"Guantes talla L", qty:"3 cajas", spec:"EPI" },
-{ loc:"Armario 6", name:"Patucos", qty:"Varios", spec:"EPI" },
+    /* ARMARIO 7 */
+    { loc:"Armario 7", name:"Basura", qty:"1", spec:"General" },
+    { loc:"Armario 7", name:"Póster anatomía completo", qty:"1", spec:"Docencia" },
+    { loc:"Armario 7", name:"Desinfectante de superficies (verde)", qty:"Varios", spec:"Higiene" },
+    { loc:"Armario 7", name:"Alcohol", qty:"Varios", spec:"Higiene" },
+    { loc:"Armario 7", name:"Desatascador", qty:"1", spec:"Mantenimiento" },
 
-{ loc:"Armario 7", name:"Basura", qty:"1 ud", spec:"General" },
-{ loc:"Armario 7", name:"Póster anatomía completo", qty:"1 ud", spec:"Docencia" },
-{ loc:"Armario 7", name:"Desinfectante de superficies", qty:"Varios", spec:"Higiene" },
-{ loc:"Armario 7", name:"Alcohol", qty:"Varios", spec:"Higiene" },
-{ loc:"Armario 7", name:"Desatascador", qty:"1 ud", spec:"Mantenimiento" },
+    /* ARMARIO 8 */
+    { loc:"Armario 8", name:"Pantoma", qty:"2", spec:"Prótesis" },
+    { loc:"Armario 8", name:"Escayola", qty:"4 kg", spec:"Prótesis" },
+    { loc:"Armario 8", name:"Papel manos / baberos desechables", qty:"Muchos", spec:"Higiene" },
+    { loc:"Armario 8", name:"Tipodonto", qty:"5", spec:"Docencia" },
+    { loc:"Armario 8", name:"Recambios dientes tipodonto", qty:"Varios", spec:"Docencia" },
+    { loc:"Armario 8", name:"Barreño plegable", qty:"1", spec:"General" },
+    { loc:"Armario 8", name:"Intercambiador punta ultrasonido", qty:"1", spec:"Higiene" },
 
-{ loc:"Armario 8", name:"Pantoma", qty:"2 uds", spec:"Prótesis" },
-{ loc:"Armario 8", name:"Escayola", qty:"4 kg", spec:"Prótesis" },
-{ loc:"Armario 8", name:"Papel manos / baberos", qty:"Muchos", spec:"Higiene" },
-{ loc:"Armario 8", name:"Tipodonto", qty:"5 uds", spec:"Docencia" },
-{ loc:"Armario 8", name:"Recambios dientes tipodonto", qty:"Varios", spec:"Docencia" },
-{ loc:"Armario 8", name:"Barreño plegable", qty:"1 ud", spec:"General" },
-{ loc:"Armario 8", name:"Intercambiador punta ultrasonido", qty:"1 ud", spec:"Higiene" },
+    /* ARMARIO 9 */
+    { loc:"Armario 9", name:"Caja ultrasonido", qty:"1", spec:"Higiene" },
+    { loc:"Armario 9", name:"Caja componentes lámpara polimerizar", qty:"1", spec:"Conservadora" },
+    { loc:"Armario 9", name:"Joyas dentales", qty:"Varias", spec:"Estética" },
+    { loc:"Armario 9", name:"Caja dispensador de vasos", qty:"1", spec:"Higiene" },
+    { loc:"Armario 9", name:"Limas de endodoncia", qty:"Varias", spec:"Endodoncia" },
+    { loc:"Armario 9", name:"Alcohol", qty:"1 bote", spec:"Higiene" },
+    { loc:"Armario 9", name:"Taza mezcla alginato", qty:"1", spec:"Prótesis" },
 
-{ loc:"Armario 9", name:"Caja ultrasonido", qty:"1 ud", spec:"Higiene" },
-{ loc:"Armario 9", name:"Caja componentes lámpara polimerizar", qty:"1 ud", spec:"Conservadora" },
-{ loc:"Armario 9", name:"Joyas dentales", qty:"Varias", spec:"Estética" },
-{ loc:"Armario 9", name:"Caja dispensador de vasos", qty:"1 ud", spec:"Higiene" },
-{ loc:"Armario 9", name:"Limas de endodoncia", qty:"Varias", spec:"Endodoncia" },
-{ loc:"Armario 9", name:"Alcohol", qty:"1 bote", spec:"Higiene" },
-{ loc:"Armario 9", name:"Taza mezcla alginato", qty:"1 ud", spec:"Prótesis" },
+    /* CAJÓN 1 */
+    { loc:"Cajón 1", name:"Test de esporas", qty:"Varios", spec:"Esterilización" },
+    { loc:"Cajón 1", name:"Instrumental variado", qty:"Varios", spec:"General" },
 
-/* CAJONES */
-{ loc:"Cajón 1", name:"Test de esporas", qty:"Varios", spec:"Esterilización" },
-{ loc:"Cajón 1", name:"Instrumental variado", qty:"Varios", spec:"General" },
+    /* CAJÓN 2 */
+    { loc:"Cajón 2", name:"EPIs", qty:"Varios", spec:"EPI" },
 
-{ loc:"Cajón 2", name:"EPIs", qty:"Varios", spec:"EPI" },
+    /* CAJÓN 3 */
+    { loc:"Cajón 3", name:"Vacío", qty:"—", spec:"—" },
 
-{ loc:"Cajón 3", name:"Vacío", qty:"—", spec:"—" },
+    /* CAJÓN 4 */
+    { loc:"Cajón 4", name:"Aspiradores", qty:"Varios", spec:"Higiene" },
+    { loc:"Cajón 4", name:"Torundas de algodón", qty:"Varios", spec:"Higiene" },
 
-{ loc:"Cajón 4", name:"Aspiradores", qty:"Varios", spec:"Higiene" },
-{ loc:"Cajón 4", name:"Torundas de algodón", qty:"Varias", spec:"Higiene" },
+    /* CAJÓN 5 */
+    { loc:"Cajón 5", name:"Guantes estériles", qty:"18 pares", spec:"EPI" },
+    { loc:"Cajón 5", name:"Baberos", qty:"5 paquetes", spec:"Higiene" },
+    { loc:"Cajón 5", name:"Coleteros", qty:"Varios", spec:"General" },
 
-{ loc:"Cajón 5", name:"Guantes estériles", qty:"18 pares", spec:"EPI" },
-{ loc:"Cajón 5", name:"Baberos", qty:"5 paquetes", spec:"Higiene" },
-{ loc:"Cajón 5", name:"Coleteros", qty:"Varios", spec:"General" },
+    /* CAJÓN 6 */
+    { loc:"Cajón 6", name:"Protector de cabezal", qty:"1", spec:"Equipo" },
+    { loc:"Cajón 6", name:"Bandejas de pocillos desechables", qty:"7 paquetes", spec:"Higiene" },
 
-{ loc:"Cajón 6", name:"Protector de cabezal", qty:"1 ud", spec:"Equipo" },
-{ loc:"Cajón 6", name:"Bandejas de pocillos desechables", qty:"7 paquetes", spec:"Higiene" },
+    /* CAJÓN 7 */
+    { loc:"Cajón 7", name:"Guías de color", qty:"Varias", spec:"Prótesis" },
+    { loc:"Cajón 7", name:"Ceras de mordida", qty:"Varias", spec:"Prótesis" },
+    { loc:"Cajón 7", name:"Arcilla blanca", qty:"1 bloque", spec:"Prótesis" },
 
-{ loc:"Cajón 7", name:"Guías de color", qty:"Varias", spec:"Prótesis" },
-{ loc:"Cajón 7", name:"Ceras de mordida", qty:"Varias", spec:"Prótesis" },
-{ loc:"Cajón 7", name:"Arcilla blanca", qty:"1 bloque", spec:"Prótesis" },
+    /* CAJÓN 8 */
+    { loc:"Cajón 8", name:"Alicates de ortodoncia esterilizados", qty:"Varios", spec:"Ortodoncia" },
+    { loc:"Cajón 8", name:"Fórceps extracción infantil", qty:"1", spec:"Cirugía" },
+    { loc:"Cajón 8", name:"Agujas anestesia cortas", qty:"6 cajas", spec:"Cirugía" },
+    { loc:"Cajón 8", name:"Agujas anestesia largas", qty:"1 caja", spec:"Cirugía" },
+    { loc:"Cajón 8", name:"Agujas de sutura", qty:"2 cajas", spec:"Cirugía" },
+    { loc:"Cajón 8", name:"Material quirúrgico esterilizado", qty:"Varios", spec:"Cirugía" },
+    { loc:"Cajón 8", name:"Piel artificial para sutura", qty:"1", spec:"Docencia" },
+    { loc:"Cajón 8", name:"Mangos y hojas de bisturí", qty:"Varios", spec:"Cirugía" },
 
-{ loc:"Cajón 8", name:"Alicates de ortodoncia esterilizados", qty:"Varios", spec:"Ortodoncia" },
-{ loc:"Cajón 8", name:"Fórceps infantil", qty:"1 ud", spec:"Cirugía" },
-{ loc:"Cajón 8", name:"Agujas anestesia cortas", qty:"6 cajas", spec:"Cirugía" },
-{ loc:"Cajón 8", name:"Agujas anestesia largas", qty:"1 caja", spec:"Cirugía" },
-{ loc:"Cajón 8", name:"Agujas de sutura", qty:"2 cajas", spec:"Cirugía" },
-{ loc:"Cajón 8", name:"Material quirúrgico esterilizado", qty:"Varios", spec:"Cirugía" },
-{ loc:"Cajón 8", name:"Piel artificial para sutura", qty:"1 ud", spec:"Docencia" },
-{ loc:"Cajón 8", name:"Mangos y hojas de bisturí", qty:"Varios", spec:"Cirugía" }
+    /* CAJÓN 9 */
+    { loc:"Cajón 9", name:"Alginato", qty:"1 paquete", spec:"Prótesis" },
+    { loc:"Cajón 9", name:"Pastillas reveladoras", qty:"50", spec:"Preventiva" },
+    { loc:"Cajón 9", name:"Cubetas de flúor", qty:"Varias", spec:"Preventiva" },
+    { loc:"Cajón 9", name:"Cubetas de impresión", qty:"Varias", spec:"Prótesis" },
+    { loc:"Cajón 9", name:"Tazas mezcla alginato", qty:"Varias", spec:"Prótesis" },
+    { loc:"Cajón 9", name:"Silicona pesada", qty:"Varias", spec:"Prótesis" },
+    { loc:"Cajón 9", name:"Silicona fluida", qty:"Varias", spec:"Prótesis" },
+    { loc:"Cajón 9", name:"Puntas silicona fluida", qty:"Varias", spec:"Prótesis" },
+    { loc:"Cajón 9", name:"Espátula alginato", qty:"1", spec:"Prótesis" },
+
+    /* CAJÓN 10 */
+    { loc:"Cajón 10", name:"Papel articular", qty:"1 caja", spec:"Conservadora" },
+    { loc:"Cajón 10", name:"Polerstrips", qty:"2 cajas", spec:"Conservadora" },
+    { loc:"Cajón 10", name:"Cepillos profilácticos", qty:"Varios", spec:"Preventiva" },
+    { loc:"Cajón 10", name:"Cemento de zinc (polvo)", qty:"2 botes", spec:"Conservadora" },
+    { loc:"Cajón 10", name:"Cemento coronas Dyract", qty:"Varios", spec:"Conservadora" },
+    { loc:"Cajón 10", name:"Adhesivo de empastes", qty:"Varios", spec:"Conservadora" },
+    { loc:"Cajón 10", name:"Matrices metálicas", qty:"3", spec:"Conservadora" },
+    { loc:"Cajón 10", name:"Matrices transparentes", qty:"3", spec:"Conservadora" },
+    { loc:"Cajón 10", name:"Cemento hidróxido de calcio", qty:"2 tubos", spec:"Conservadora" },
+    { loc:"Cajón 10", name:"Composite fluido", qty:"3 botes", spec:"Conservadora" },
+    { loc:"Cajón 10", name:"Pasta pulir composite", qty:"1 bote", spec:"Conservadora" },
+    { loc:"Cajón 10", name:"Acrílico coronas provisionales", qty:"1 bote", spec:"Prótesis" },
+    { loc:"Cajón 10", name:"Ligaduras Kobayashi", qty:"Varias", spec:"Ortodoncia" },
+    { loc:"Cajón 10", name:"Papel pH salival", qty:"2 tiras", spec:"Preventiva" },
+    { loc:"Cajón 10", name:"Pocillos reutilizables y desechables", qty:"Muchos", spec:"Higiene" },
+
+    /* CAJÓN 11 */
+    { loc:"Cajón 11", name:"Dientes de prótesis", qty:"Varios", spec:"Prótesis" },
+    { loc:"Cajón 11", name:"Coronas provisionales de prótesis", qty:"Varias", spec:"Prótesis" },
+    { loc:"Cajón 11", name:"Coronas provisionales metálicas", qty:"Varias", spec:"Prótesis" },
+    { loc:"Cajón 11", name:"Coronas perforadas", qty:"Varias", spec:"Prótesis" },
+    { loc:"Cajón 11", name:"Instrucciones termoselladora", qty:"1", spec:"Equipo" },
+    { loc:"Cajón 11", name:"Caja incubadora de esporas", qty:"1", spec:"Esterilización" },
+
+    /* CAJÓN 12 */
+    { loc:"Cajón 12", name:"Fresas para pieza de mano", qty:"Varias", spec:"Prótesis" },
+    { loc:"Cajón 12", name:"Discos de pulido de prótesis", qty:"Varios", spec:"Prótesis" },
+    { loc:"Cajón 12", name:"Casquillos de aluminio", qty:"5 cajitas", spec:"Prótesis" }
 ];
 
 const pedidos = [
-{ name:"Pistola silicona fluida", qty:"1 ud" },
-{ name:"Rollos de papel", qty:"4 rollos" }
+    { name:"Pistola silicona fluida", qty:"1" },
+    { name:"Rollos de papel", qty:"4" }
 ];
 
-/* renderizado y orden */
-function customSort(d){return d.sort((a,b)=>{const p=s=>{const m=s.match(/(\D+)\s*(\d+)/);return m?{t:m[1],n:+m[2]}:{t:s,n:0}};const A=p(a.loc),B=p(b.loc);if(A.t!==B.t)return A.t==="Armario"?-1:1;return A.n-B.n})}
+// Función para ordenar: Primero Armarios (1..9) luego Cajones (1..12)
+function sortInv(data) {
+    return data.sort((a, b) => {
+        const extract = s => {
+            const m = s.match(/(Armario|Cajón)\s*(\d+)/i);
+            return m ? { type: m[1], num: parseInt(m[2]) } : { type: s, num: 0 };
+        };
+        const A = extract(a.loc), B = extract(b.loc);
 
-function renderInventory(f=""){
-const c=document.getElementById("inventoryContainer");c.innerHTML="";
-const g={};let count=0;
-customSort([...inventory]).forEach(i=>{if(!g[i.loc])g[i.loc]=[];g[i.loc].push(i)});
-Object.keys(g).forEach(l=>{
-const items=g[l].filter(i=>i.name.toLowerCase().includes(f.toLowerCase()));
-if(!items.length)return;
-c.innerHTML+=`
-<div class="mb-8 bg-white border rounded-xl">
-<div class="bg-slate-800 text-white px-6 py-3 font-black">${l}</div>
-<table class="w-full">
-${items.map(i=>{count++;return`
-<tr class="item-row">
-<td class="px-6 py-4"><b>${i.name}</b><div class="text-xs text-slate-400">${i.spec}</div></td>
-<td class="px-6 py-4 text-right"><span class="qty-badge bg-blue-600 text-white px-3 py-1 rounded">${i.qty}</span></td>
-</tr>`}).join("")}
-</table></div>`;
-});
-document.getElementById("totalItems").innerText=count;
+        if (A.type !== B.type) {
+            // "Armario" viene antes que "Cajón" por orden alfabético
+            return A.type.localeCompare(B.type);
+        }
+        return A.num - B.num; // Orden numérico si el tipo es igual
+    });
 }
 
-function renderPedidos(){
-document.getElementById("pedidosContainer").innerHTML=
-pedidos.map(p=>`<div class="flex justify-between px-6 py-4 border-b"><b>${p.name}</b><span>${p.qty}</span></div>`).join("");
+function render(filter = "") {
+    const container = document.getElementById("inventoryContainer");
+    container.innerHTML = "";
+    let totalItemsDisplayed = 0;
+    const groups = {};
+
+    // Filtrado por nombre, ubicación o especialidad
+    const filtered = inventory.filter(i => 
+        i.name.toLowerCase().includes(filter.toLowerCase()) || 
+        i.loc.toLowerCase().includes(filter.toLowerCase()) ||
+        i.spec.toLowerCase().includes(filter.toLowerCase())
+    );
+
+    // Agrupar
+    sortInv(filtered).forEach(item => {
+        if (!groups[item.loc]) groups[item.loc] = [];
+        groups[item.loc].push(item);
+    });
+
+    // Renderizar HTML
+    Object.keys(groups).forEach(loc => {
+        const items = groups[loc];
+        totalItemsDisplayed += items.length;
+
+        container.innerHTML += `
+            <div class="mb-8 bg-white border rounded-xl shadow-sm overflow-hidden">
+                <div class="bg-slate-800 text-white px-6 py-3 font-black flex justify-between items-center">
+                    <span>${loc.toUpperCase()}</span>
+                    <span class="text-xs bg-slate-700 px-2 py-1 rounded">${items.length} productos</span>
+                </div>
+                <table class="w-full">
+                    ${items.map(i => `
+                        <tr class="item-row border-b last:border-0">
+                            <td class="px-6 py-4">
+                                <div class="font-bold text-slate-800">${i.name}</div>
+                                <div class="text-xs text-slate-400 font-semibold uppercase tracking-wider">${i.spec}</div>
+                            </td>
+                            <td class="px-6 py-4 text-right">
+                                <span class="qty-badge inline-block bg-blue-600 text-white px-4 py-1 rounded-full text-sm font-bold">
+                                    ${i.qty}
+                                </span>
+                            </td>
+                        </tr>
+                    `).join("")}
+                </table>
+            </div>`;
+    });
+
+    document.getElementById("totalItems").innerText = totalItemsDisplayed;
 }
 
-document.getElementById("searchInput").addEventListener("input",e=>renderInventory(e.target.value));
-renderInventory(); renderPedidos();
+function renderPedidos() {
+    const pContainer = document.getElementById("pedidosContainer");
+    if (pedidos.length === 0) {
+        pContainer.innerHTML = `<div class="p-6 text-slate-400 italic text-center">No hay pedidos pendientes</div>`;
+        return;
+    }
+    pContainer.innerHTML = pedidos.map(p => `
+        <div class="flex justify-between items-center px-6 py-4 border-b last:border-0 hover:bg-amber-50">
+            <span class="font-bold text-slate-700">${p.name}</span>
+            <span class="bg-amber-100 text-amber-700 px-4 py-1 rounded-lg font-black text-sm">CANTIDAD: ${p.qty}</span>
+        </div>
+    `).join("");
+}
+
+// Escuchador del buscador
+document.getElementById("searchInput").addEventListener("input", e => render(e.target.value));
+
+// Ejecución inicial
+render();
+renderPedidos();
 </script>
+
 </body>
 </html>
